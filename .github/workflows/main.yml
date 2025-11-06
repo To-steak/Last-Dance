@@ -1,0 +1,37 @@
+name: Auto Daily Commit (Unity)
+
+on:
+  schedule:
+    - cron: '0 12 * * *' 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect and commit changes
+        env:
+          BRANCH: develop
+        run: |
+          git checkout $BRANCH || git switch -c $BRANCH
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Auto backup: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          git push origin $BRANCH
