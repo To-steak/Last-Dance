@@ -2,37 +2,26 @@ name: Auto Daily Commit (Unity)
 
 on:
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '0 15 * * *'
   workflow_dispatch:
+    inputs: {}
 
 jobs:
   auto-commit:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Unity - Builder
-        uses: game-ci/unity-builder@v4.7.0
-        with:
-          projectPath: .
-          buildName: "AutoBuild"
-          targetPlatform: StandaloneWindows64
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit changes if any
+      - name: Commit changes
         run: |
           git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "🤖 Daily auto-commit: $(date '+%Y-%m-%d %H:%M:%S')"
-            git push
-          fi
+          git commit -m "🤖 Daily auto-commit: $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+
+      - name: Push changes
+        run: git push
