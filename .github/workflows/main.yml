@@ -2,36 +2,37 @@ name: Auto Daily Commit (Unity)
 
 on:
   schedule:
-    - cron: '0 12 * * *' 
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  backup:
+  auto-commit:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up git user
+      - name: Unity - Builder
+        uses: game-ci/unity-builder@v4.7.0
+        with:
+          projectPath: .
+          buildName: "AutoBuild"
+          targetPlatform: StandaloneWindows64
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Detect and commit changes
-        env:
-          BRANCH: develop
+      - name: Commit changes if any
         run: |
-          git checkout $BRANCH || git switch -c $BRANCH
-          git add -A
-          if git diff --staged --quiet; then
+          git add .
+          if git diff --cached --quiet; then
             echo "No changes to commit"
-            exit 0
+          else
+            git commit -m "🤖 Daily auto-commit: $(date '+%Y-%m-%d %H:%M:%S')"
+            git push
           fi
-          git commit -m "Auto backup: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-          git push origin $BRANCH
