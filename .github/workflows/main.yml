@@ -54,7 +54,7 @@ jobs:
           - WebGL
     steps:
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space-action@v1.3.1
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: false
           android: true
@@ -75,7 +75,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildName: MyGame
+          buildName: Last-Dance
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -89,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         
       - name: Set Date Tag
         run: echo "DATE_TAG=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
