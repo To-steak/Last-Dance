@@ -1,17 +1,18 @@
-name: Auto Daily Commit & Release (Unity)
+name: Multi-Platform Build & Release
 
 on:
   schedule:
-    - cron: '0 15 * * *' # 한국 시간 밤 12시
+    - cron: '0 15 * * *'
   workflow_dispatch:
     inputs: {}
 
-# 릴리즈 생성 및 커밋 푸시를 위해 쓰기 권한 필수
 permissions:
   contents: write
+  checks: write
+  pull-requests: write
 
 jobs:
-  build-and-release:
+  test-and-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -25,10 +26,8 @@ jobs:
       - name: Commit changes
         run: |
           git add .
-          # 현재 날짜 변수 생성 (예: 2025-11-26)
           CURRENT_DATE=$(date +'%Y-%m-%d')
           echo "DATE_TAG=$CURRENT_DATE" >> $GITHUB_ENV
-          
           git commit -m "[BOT] Daily auto-commit: $CURRENT_DATE" || echo "No changes to commit"
           git push
 
@@ -41,31 +40,65 @@ jobs:
           projectPath: .
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Project (Windows)
+  build:
+    needs: test-and-commit # 테스트가 통과해야만 시작
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # 하나가 실패해도 나머지는 계속 진행
+      matrix:
+        targetPlatform:
+          - StandaloneWindows64
+          - StandaloneLinux64
+          - WebGL
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Build Project (${{ matrix.targetPlatform }})
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: StandaloneWindows64
+          targetPlatform: ${{ matrix.targetPlatform }}
           buildName: MyGame
 
-      - name: Zip Build
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+          retention-days: 1
+
+  release:
+    needs: build # 모든 빌드가 끝나야 시작
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v3
+        
+      - name: Set Date Tag
+        run: echo "DATE_TAG=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: Zip Builds
         run: |
-          cd build/StandaloneWindows64
-          zip -r ../../MyGame_${{ env.DATE_TAG }}.zip .
-          cd ../..
+          zip -r Windows_${{ env.DATE_TAG }}.zip Build-StandaloneWindows64
+          zip -r Linux_${{ env.DATE_TAG }}.zip Build-StandaloneLinux64
+          zip -r WebGL_${{ env.DATE_TAG }}.zip Build-WebGL
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: build-${{ env.DATE_TAG }} # 태그명: build-2025-11-26
-          name: Daily Build ${{ env.DATE_TAG }}
+          tag_name: build-${{ env.DATE_TAG }}
+          name: Daily Build ${{ env.DATE_TAG }} (Win/Linux/WebGL)
           body: |
-            Auto-generated Daily Build
+            [BOT] Multi-Platform Daily Build
             - Date: ${{ env.DATE_TAG }}
-            - Platform: Windows 64-bit
-          files: Last-Dance_${{ env.DATE_TAG }}.zip
+            - Platforms: Windows, Linux, WebGL
+          files: |
+            Windows_${{ env.DATE_TAG }}.zip
+            Linux_${{ env.DATE_TAG }}.zip
+            WebGL_${{ env.DATE_TAG }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
