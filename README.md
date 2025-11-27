@@ -15,4 +15,4 @@
 (이미지 추가 예정)
 
 ## Play the game
-[release page](https://github.com/To-steak/Last-Dance/releases)에서 체험하실 수 있습니다.
+[Release](https://github.com/To-steak/Last-Dance/releases)에서 체험하실 수 있습니다.
