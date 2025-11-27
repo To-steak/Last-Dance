@@ -104,7 +104,7 @@ jobs:
           zip -r WebGL_${{ env.DATE_TAG }}.zip Build-WebGL
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ env.DATE_TAG }}
           name: Daily Build ${{ env.DATE_TAG }} (Win/Linux/WebGL)
