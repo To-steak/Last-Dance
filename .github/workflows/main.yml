@@ -28,7 +28,7 @@ jobs:
           git add .
           CURRENT_DATE=$(date +'%Y-%m-%d')
           echo "DATE_TAG=$CURRENT_DATE" >> $GITHUB_ENV
-          git commit -m "[BOT] Daily auto-commit: $CURRENT_DATE" || echo "No changes to commit"
+          git commit -m "Daily auto-commit: $CURRENT_DATE" || echo "No changes to commit"
           git push
 
       - uses: game-ci/unity-test-runner@v4
