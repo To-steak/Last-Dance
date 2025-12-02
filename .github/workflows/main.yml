@@ -25,13 +25,13 @@ jobs:
           android: true
           dotnet: true
           haskell: true
-          larget-package: true
+          large-packages: true
           docker-images: false
           swap-storage: false
 
       - name: Create Swap Space
         run: |
-          sudo fallocate -l 8G /swapfile
+          sudo fallocate -l 6G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
           sudo swapon /swapfile
