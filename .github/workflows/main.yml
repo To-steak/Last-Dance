@@ -18,6 +18,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Create Swap Space
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
@@ -39,6 +47,7 @@ jobs:
         with:
           projectPath: .
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+          customParameters: -nographics -force-opengl
 
   build:
     needs: test-and-commit
@@ -65,7 +74,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: false
+          swap-storage: true
 
       - name: Checkout Repository
         uses: actions/checkout@v4
