@@ -49,7 +49,7 @@ jobs:
         targetPlatform:
           - StandaloneWindows64
           - StandaloneLinux64
-        #- WebGL
+          - WebGL
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -65,7 +65,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
+          swap-storage: false
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
         run: |
           zip -r Windows_${{ env.DATE_TAG }}.zip Build-StandaloneWindows64
           zip -r Linux_${{ env.DATE_TAG }}.zip Build-StandaloneLinux64
-        #zip -r WebGL_${{ env.DATE_TAG }}.zip Build-WebGL
+          zip -r WebGL_${{ env.DATE_TAG }}.zip Build-WebGL
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -115,6 +115,6 @@ jobs:
           files: |
             Windows_${{ env.DATE_TAG }}.zip
             Linux_${{ env.DATE_TAG }}.zip
-          #WebGL_${{ env.DATE_TAG }}.zip
+            WebGL_${{ env.DATE_TAG }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
